@@ -1,68 +1,47 @@
-import sqlite3
+import random
 import sys
-import traceback
 
-from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QMessageBox, QDialog
+from PyQt5.QtGui import QPainter, QColor
+from PyQt5.QtWidgets import QWidget, QApplication, QPushButton
 
 
-class EditDB(QDialog):
+class Example(QWidget):
     def __init__(self):
-        super(EditDB, self).__init__()
-        uic.loadUi("addEditCoffeeForm.ui", self)
+        super().__init__()
+        self.initUI()
 
-    def accept(self) -> None:
-        con = sqlite3.connect('coffee.sqlite')
-        cur = con.cursor()
-        cur.execute('INSERT INTO coffee(Name, Roasting, Type, Taste, Price, Size) VALUES (?,?,?,?,?,?)',
-                    [self.NameLineEdit.text(), self.RoastingLineEdit.text(), self.TypeLineEdit.text(),
-                     self.TasteLineEdit.text(), self.PriceLineEdit.text(), self.SizeLineEdit.text()])
-        con.commit()
-        con.close()
-        self.done(0)
+    def initUI(self):
+        self.setGeometry(300, 300, 200, 200)
+        self.setWindowTitle('123')
+        self.btn = QPushButton('Draw', self)
+        self.btn.move(70, 150)
+        self.btn.resize(60, 40)
+        self.do_paint = False
+        self.btn.clicked.connect(self.paint)
 
-    def reject(self) -> None:
-        self.done(0)
+    def paintEvent(self, event):
+        if self.do_paint:
+            qp = QPainter()
+            qp.begin(self)
+            self.draw_flag(qp)
+            qp.end()
 
+    def paint(self):
+        self.do_paint = True
+        self.repaint()
 
-class Window(QMainWindow):
-    def __init__(self):
-        super(Window, self).__init__()
-        uic.loadUi("main.ui", self)
-        self.table()
-        self.addInfoButton.clicked.connect(self.run)
-
-    def run(self) -> None:
-        sys.excepthook = except_hook
-        EDB = EditDB()
-        EDB.show()
-        EDB.exec()
-        self.table()
-
-    def table(self) -> None:
-        con = sqlite3.connect('coffee.sqlite')
-        cur = con.cursor()
-        cur.execute(f"""SELECT * FROM coffee""")
-        db = cur.fetchall()
-        self.tableWidget.setColumnCount(len(db[0]) - 1)
-        self.tableWidget.setRowCount(len(db))
-        self.tableWidget.setHorizontalHeaderLabels(["Name", "Roasting", "Type", "Taste", "Price", "Size"])
-        for i, elemi in enumerate(db):
-            for j, elemj in enumerate(elemi[1:]):
-                self.tableWidget.setItem(i, j, QTableWidgetItem(elemj))
-        con.close()
+    def draw_flag(self, qp):
+        a = random.randint(10, 100)
+        r = random.randint(0, 255)
+        g = random.randint(0, 255)
+        b = random.randint(0, 255)
+        qp.setBrush(QColor(r, g, b))
+        qp.drawEllipse(random.randint(0, 200), random.randint(0, 200), a, a)
 
 
-
-def except_hook(cls, exception, trace):
-    tb = "".join(traceback.format_exception(cls, exception, trace))
-    print(tb)
-
-
-# Точка входа (Entry point)
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    sys.excepthook = except_hook
-    win = Window()
-    win.show()
+    ex = Example()
+    ex.show()
     sys.exit(app.exec())
+
